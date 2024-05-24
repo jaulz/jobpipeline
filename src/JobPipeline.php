@@ -65,7 +65,7 @@ class JobPipeline implements ShouldQueue
     public function handle(): void
     {
         foreach ($this->jobs as $job) {
-            if (class_exists($job)) {
+            if (is_string($job) && class_exists($job)) {
                 $job = [new $job(...$this->passable), 'handle'];
             }
 
