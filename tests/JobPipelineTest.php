@@ -2,6 +2,7 @@
 
 namespace Stancl\JobPipeline\Tests;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -192,6 +193,22 @@ class JobPipelineTest extends TestCase
         event(new TestEvent(new TestModel()));
 
         $this->assertTrue($passes);
+    }
+
+    /** @test */
+    public function failures_in_closures_will_throw_correctly()
+    {
+        $this->expectExceptionMessage('foobar');
+
+        Event::listen(TestEvent::class, JobPipeline::make([
+            function () {
+                throw new Exception('foobar');
+            }
+        ])->send(function (TestEvent $event) {
+            return $this->valuestore;
+        })->shouldBeQueued(false)->toListener());
+
+        event(new TestEvent(new TestModel()));
     }
 }
 
